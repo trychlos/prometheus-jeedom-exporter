@@ -7,6 +7,7 @@ WorkingDirectory=/opt/jeedom_exporter
 ExecStart=node /opt/jeedom_exporter/src/index.js --config /etc/prometheus/jeedom-exporter.yml
 Restart=always
 Environment=NODE_ENV=production
+SyslogIdentifier=jeedom-exporter
 
 [Install]
 WantedBy=multi-user.target
