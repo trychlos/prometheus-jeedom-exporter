@@ -2,6 +2,31 @@
  * /src/classes/jeedom.class.js
  *
  * A class which gathers Jeedom metrics
+ * 
+ * The 'got' package provides timings as:
+ * 
+    res.timings {
+        start: 1738152457629,
+        socket: 1738152457653,
+        lookup: 1738152457686,
+        connect: 1738152457686,
+        secureConnect: undefined,
+        upload: 1738152457686,
+        response: 1738152457976,
+        end: 1738152457988,
+        error: undefined,
+        abort: undefined,
+        phases: {
+            wait: 24,
+            dns: 33,
+            tcp: 0,
+            tls: undefined,
+            request: 0,
+            firstByte: 290,
+            download: 12,
+            total: 359
+        }
+    }
  */
 
 import got from 'got';
@@ -12,6 +37,7 @@ import { EqLogicRequester } from './eqlogic-requester.class.js';
 import { EventRequester } from './event-requester.class.js';
 import { InteractionRequester } from './interaction-requester.class.js';
 import { JeeObjectRequester } from './jee-object-requester.class.js';
+import { Metric } from './metric.class.js';
 import { PluginRequester } from './plugin-requester.class.js';
 import { ScenarioRequester } from './scenario-requester.class.js';
 import { SummaryRequester } from './summary-requester.class.js';
@@ -30,11 +56,36 @@ export class Jeedom extends AppBase {
 
     // private methods
 
-    // increment the request count
-    _requestInc( method ){
+    // increment the requests count by method
+    _requestMethodInc( method ){
         this._requests = this._requests || {};
-        this._requests[method] = this._requests[method] || 0;
-        this._requests[method] += 1;
+        this._requests.methods = this._requests.methods || {};
+        this._requests.methods[method] = this._requests.methods[method] || 0;
+        this._requests.methods[method] += 1;
+    }
+
+    // increment the requests count by status
+    _requestStatusInc( status ){
+        this._requests = this._requests || {};
+        this._requests.status = this._requests.status || {};
+        this._requests.status[status] = this._requests.status[status] || 0;
+        this._requests.status[status] += 1;
+    }
+
+    // push the timings and the body length of the request
+    //  NB: this may end up with a several thousands of rows in this array!! so have to take care of that
+    _requestTimingsPush( timings, body ){
+        this._requests = this._requests || {};
+        this._requests.timings = this._requests.timings || [];
+        const limit = this.app().config().exporter.timings.limit || 1000;
+        if( this._requests.timings.length > limit ){
+            const count = this.app().config().exporter.timings.remove || 100;
+            if( this.app().verbose()){
+                console.log( '[VERBOSE] requests.timings array has reached its limit of', limit, ', removing', count, 'items' );
+            }
+            this._requests.timings = this._requests.timings.slice( count );
+        }
+        this._requests.timings.push({ ...timings, bytes: body.length });
     }
 
     /**
@@ -53,34 +104,175 @@ export class Jeedom extends AppBase {
      * @returns {Object} the JSON resultn, or null if an error has occured
      */
     async callRpc( parms ){
-        let res = null;
+        let json = null;
         const config = this.app().config();
         try {
             parms = Utils.mergeDeep({ jsonrpc: '2.0', params: { apikey: config.jeedom.key }}, parms );
             if( this.app().verbose()){
-                //console.log( '[VERBOSE] callRpc() parms', parms );
+                console.log( '[VERBOSE] callRpc() parms', JSON.stringify( parms ));
             }
-            res = await got.post( config.jeedom.url, { json: parms }).json();
+            const res = await got.post( config.jeedom.url, { json: parms });
+            this._requestMethodInc( parms.method );
+            this._requestStatusInc( res.statusCode );
+            this._requestTimingsPush( res.timings, res.body );
+            json = JSON.parse( res.body );
             if( this.app().verbose()){
-                //console.log( '[VERBOSE] callRpc() result', res );
-                console.log( '[VERBOSE] callRpc()', parms.method );
+                //console.log( '[VERBOSE] callRpc() res.json()', json );
             }
-            this._requestInc( parms.method );
         } catch( e ){
-            console.log( '[ERROR]', Date.now(), e.code );
-            res = null;
+            console.log( '[ERROR]', e.code );
         }
-        return res;
+        return json;
+    }
+
+    /**
+     * @returns the array of Metric's
+     */
+    requestsMetrics(){
+        let array = [];
+        if( this._requests ){
+            // count by method
+            if( this._requests.methods ){
+                let first = true;
+                Object.keys( this._requests.methods ).forEach(( method ) => {
+                    let args = {
+                        name: ( this.app().config().prometheus.prefix || '' )+'request_method_count',
+                        value: this.requestsMethodCount( method ),
+                        labels: {
+                            method: method
+                        }
+                    };
+                    if( first ){
+                        args.help = 'The count of requests per called method';
+                        args.type = 'counter';
+                        first = false;
+                    }
+                    array.push( new Metric( args ));
+                });
+            }
+            // count by status
+            if( this._requests.status ){
+                let first = true;
+                Object.keys( this._requests.status ).forEach(( status ) => {
+                    let args = {
+                        name: ( this.app().config().prometheus.prefix || '' )+'request_status_count',
+                        value: this.requestsStatusCount( status ),
+                        labels: {
+                            status: status
+                        }
+                    };
+                    if( first ){
+                        args.help = 'The count of requests per returned status';
+                        args.type = 'counter';
+                        first = false;
+                    };
+                    array.push( new Metric( args ));
+                });
+            }
+            // average, min, and max timings and flow efficiency
+            if( this._requests.timings ){
+                let min = null;
+                let minit = null;
+                let max = null;
+                let maxit = null;
+                let sum = 0;
+                let sumbytes = 0;
+                let count = 0;
+                this._requests.timings.forEach(( it ) => {
+                    if( it.phases.total ){
+                        const efficiency = it.bytes / it.phases.total;
+                        if( min ===  null || min > efficiency ){
+                            min = efficiency;
+                            minit = it;
+                        }
+                        if( max ===  null || max < efficiency ){
+                            max = efficiency;
+                            maxit = it;
+                        }
+                        sum += efficiency;
+                        sumbytes += it.bytes;
+                        count += 1;
+                    }
+                });
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_lowest_kbps',
+                    value: parseInt( min / 1024 * 100 ) / 100,
+                    help: 'The lowest efficiency of requests (KB/s)',
+                    type: 'gauge'
+                }));
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_lowest_ms',
+                    value: minit.phases.total,
+                    help: 'The lowest efficiency of requests (ms)',
+                    type: 'gauge'
+                }));
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_lowest_bytes',
+                    value: minit.bytes,
+                    help: 'The lowest efficiency of requests (bytes)',
+                    type: 'gauge'
+                }));
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_highest_kbps',
+                    value: parseInt( max / 1024 * 100 ) / 100,
+                    help: 'The highest efficiency of requests (KB/s)',
+                    type: 'gauge'
+                }));
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_highest_ms',
+                    value: maxit.phases.total,
+                    help: 'The highest efficiency of requests (ms)',
+                    type: 'gauge'
+                }));
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_highest_bytes',
+                    value: maxit.bytes,
+                    help: 'The highest efficiency of requests (bytes)',
+                    type: 'gauge'
+                }));
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_avg_kbps',
+                    value: parseInt( parseInt( sum / count ) / 1024 * 100 ) / 100,
+                    help: 'The average efficiency of requests (KB/s)',
+                    type: 'gauge'
+                }));
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_transferred_kb',
+                    value: parseInt( parseInt( sumbytes ) / 1024 * 100 ) / 100,
+                    help: 'The total transferred bytes (KB)',
+                    type: 'counter'
+                }));
+                array.push( new Metric({
+                    name: ( this.app().config().prometheus.prefix || '' )+'request_timing_count',
+                    value: count,
+                    help: 'The total count of in-memory requests results',
+                    type: 'counter'
+                }));
+            }
+        }
+        return array;
     }
 
     /**
      * @param {String} method
-     * @returns count the count of requests done for this method
+     * @returns the count of requests done for this method
      */
-    requestsCount( method ){
+    requestsMethodCount( method ){
         this._requests = this._requests || {};
-        this._requests[method] = this._requests[method] || 0;
-        return this._requests[method];
+        this._requests.methods = this._requests.methods || {};
+        this._requests.methods[method] = this._requests.methods[method] || 0;
+        return this._requests.methods[method];
+    }
+
+    /**
+     * @param {String} status
+     * @returns the count of requests done which have returned this status
+     */
+    requestsStatusCount( status ){
+        this._requests = this._requests || {};
+        this._requests.status = this._requests.status || {};
+        this._requests.status[status] = this._requests.status[status] || 0;
+        return this._requests.status[status];
     }
 
     /**

@@ -275,6 +275,20 @@ export class Application {
     // the metrics page
     _pageMetrics( req, res, next ){
         let str = '';
+        // send requests metrics
+        this.jeedom().requestsMetrics().forEach(( it ) => {
+            const name = it.name();
+            const help = it.help();
+            if( help ){
+                str += '# HELP '+name+' '+help+'\n';
+            }
+            const type = it.type();
+            if( type ){
+                str += '# TYPE '+name+' '+it.type()+'\n';
+            }
+            str += name+it.labels()+' '+it.value()+'\n';
+        });
+        // send jeedom metrics
         if( this._metrics ){
             Object.keys( this._metrics ).forEach(( name ) => {
                 const metrics = this._metrics[name];

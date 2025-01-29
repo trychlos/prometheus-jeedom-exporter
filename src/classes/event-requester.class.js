@@ -230,7 +230,7 @@ export class EventRequester extends Requester {
                 }
             }
         };
-        if( self.jeedom().requestsCount( method ) > 0 ){
+        if( self.jeedom().requestsMethodCount( method ) > 0 ){
             await _fnRequest();
         }
         // and last, setup the interval

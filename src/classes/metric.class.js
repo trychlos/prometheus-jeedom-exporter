@@ -108,7 +108,9 @@ export class Metric {
                     array.push( label+'="'+this._labels[it]+'"' );
                 }
             });
-            str = '{' + array.join( ',' ) + '}';
+            if( array.length ){
+                str = '{' + array.join( ',' ) + '}';
+            }
         }
         if( this._debug ){
             console.debug( 'labels', this._labels, 'str', str );

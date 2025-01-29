@@ -42,6 +42,13 @@ The default configuration is:
     jeedom:
         url: 'http://127.0.0.1/core/api/jeeApi.php'     # the Jeedom JSON RPC API URL
         key: null                                       # the Jeedom API key
+    exporter:
+        # we keep in memory an array of requests timings as computed by got
+        #  each item is about 450 bytes
+        #  do not leave this array grow until being too big to be kept manageable
+        timings:
+            limit: 10000                                # size is limited to ~4.3MB
+            remove: 100                                 # we remove items by range of 100 each time it is needed
     # the requesters configurations
     # defaulting to only be interested by event changes which are requested every minute
     requesters:
