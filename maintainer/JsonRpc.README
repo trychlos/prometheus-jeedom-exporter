@@ -2,4 +2,4 @@ see https://doc.jeedom.com/en_US/core/4.1/jsonrpc_api
 
 ping            { jsonrpc: '2.0', id: 99999, result: 'pong' }
 version         { jsonrpc: '2.0', id: 99999, result: '4.4.19' }
-datetime        { jsonrpc: '2.0', id: 99999, result: 1737723795.982385 }    // in microseconds
+datetime        { jsonrpc: '2.0', id: 99999, result: 1737723795.982385 }    // in ms.microseconds

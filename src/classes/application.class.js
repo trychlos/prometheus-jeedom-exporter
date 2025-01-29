@@ -128,6 +128,7 @@ export class Application {
 
     // the home page with its links
     _pageHome( req, res, next ){
+        const metrics = this.config().prometheus.metrics;
         res.set( 'Content-Type', 'text/html' );
         res.send(
             '<!DOCTYPE html>'
@@ -163,7 +164,7 @@ export class Application {
             + '    </div>'
             + '    <div class="links">'
             + '      <ul>'
-            + '        <li><a href="/metrics">Metrics</a></li>'
+            + '        <li><a href="'+metrics+'">Metrics</a></li>'
             + '        <li><a href="/config">Configuration</a></li>'
             + '        <li><a href="/inventory">Inventory</a></li>'
             + '      </ul>'

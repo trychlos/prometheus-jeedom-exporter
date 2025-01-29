@@ -41,7 +41,7 @@ export class Constants {
                 changes: {
                     enabled: true,
                     interval: 60000,            // 60*1000=1mn en ms
-                    since: 60000                // 60*1000=1mn en ms: when starting, rewind 1mn to init the metrics
+                    since: 600000               // 10*60*1000=10mn en ms: when starting, rewind 10mn to init the metrics
                 }
             },
             interaction: {
