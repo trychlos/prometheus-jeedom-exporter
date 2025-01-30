@@ -2,9 +2,9 @@
 
 ## ChangeLog
 
-### 1.0.1-rc.0
+### 1.1.0
 
-    Release date:
+    Release date: 2025- 1-30
 
     - Have a greetings line at startup (todo #1)
     - Add GPLv3 licence
@@ -18,4 +18,4 @@
 
 ---
 P. Wieser
-- Last updated on 2025, Jan. 29th
+- Last updated on 2025, Jan. 30th
