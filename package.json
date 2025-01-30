@@ -23,7 +23,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/trychlos/prometheus-jeedom-exporter.git"
+    "url": "git+https://github.com/trychlos/prometheus-jeedom-exporter.git"
   },
   "bugs": {
     "url": "https://github.com/trychlos/prometheus-jeedom-exporter/issues"
