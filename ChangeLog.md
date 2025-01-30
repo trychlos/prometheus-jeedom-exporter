@@ -8,6 +8,7 @@
 
     - Have a greetings line at startup (todo #1)
     - Add GPLv3 licence
+    - Have a minimal test infrastructure
 
 ### 1.0.0
 

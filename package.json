@@ -3,7 +3,8 @@
   "version": "1.0.1-rc.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "test": "node test/index.js"
   },
   "tags": [
     "prometheus",
@@ -11,7 +12,7 @@
     "exporter"
   ],
   "author": "Pierre Wieser <p.wieser@trychlos.org>",
-  "license": "ISC",
+  "license": "GPLv3",
   "description": "A Prometheus Exporter for Jeedom",
   "dependencies": {
     "commander": "^13.1.0",
@@ -19,5 +20,12 @@
     "got": "^14.4.5",
     "yaml": "^2.7.0"
   },
-  "type": "module"
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trychlos/prometheus-jeedom-exporter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/trychlos/prometheus-jeedom-exporter/issues"
+  }
 }
