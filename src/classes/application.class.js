@@ -76,7 +76,7 @@ export class Application {
         };
         this._command = new Command();
         this._command
-            .name( self._package.name())
+            .name( 'node /path/to/index.js' )
             .description( self._package.description())
             .version( self._package.version())
             .addOption(
@@ -116,6 +116,12 @@ export class Application {
         this._verbose = opts.verbose;
         //console.debug( 'returning', res );
         return res;
+    }
+
+    // display a greetings line
+    _greetings(){
+        const pck = this.package();
+        console.log( pck.name()+' v '+pck.version()+' - '+pck.description())
     }
 
     // display as YAML the internal configuration of the exporter
@@ -370,6 +376,13 @@ export class Application {
     }
 
     /**
+     * @returns {PackageJson} the JSON package
+     */
+    package(){
+        return this._package;
+    }
+
+    /**
      * @summary Push a new metric
      * @param {Metric} a metric
      */
@@ -384,6 +397,8 @@ export class Application {
      */
     run(){
         if( this._commandLine()){
+            this._greetings();
+
             this._run = {};
             this._app = express();
 

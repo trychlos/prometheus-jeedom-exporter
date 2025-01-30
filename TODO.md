@@ -10,7 +10,6 @@
 
 |   Id | Date       | Description and comment(s) |
 | ---: | :---       | :---                       |
-|    1 | 2025- 1-29 | Have a greeting line on startup |
 |    2 |  |  |
 
 ---
@@ -18,6 +17,8 @@
 
 |   Id | Date       | Description and comment(s) |
 | ---: | :---       | :---                       |
+|    1 | 2025- 1-29 | Have a greeting line on startup |
+|      | 2025- 1-30 | Done |
 
 ---
 P. Wieser

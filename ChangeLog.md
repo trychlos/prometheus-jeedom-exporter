@@ -6,7 +6,7 @@
 
     Release date:
 
-    - 
+    - Have a greetings line at startup (todo #1)
 
 ### 1.0.0
 
