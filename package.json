@@ -27,5 +27,8 @@
   },
   "bugs": {
     "url": "https://github.com/trychlos/prometheus-jeedom-exporter/issues"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }
