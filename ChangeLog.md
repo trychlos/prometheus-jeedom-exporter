@@ -2,9 +2,9 @@
 
 ## ChangeLog
 
-### 1.2.1-rc.0
+### 1.2.1
 
-    Release date: 
+    Release date: 2025- 3-14
 
     - Let the caller ask for metric dump
     - Fix the jeeObjectRequester sub-objects exclusion
