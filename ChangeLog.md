@@ -9,6 +9,7 @@
     - Fix jeeObject::all API call (todo #2)
     - Add a human name in events changes (todo #3)
     - Log the first inventory level on demand (todo #4)
+    - Improve InteractionRequester debug message
 
 ### 1.1.0
 

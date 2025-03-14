@@ -61,7 +61,7 @@ export class InteractionRequester extends Requester {
         const _fnRequest = async function(){
             // get the full summary
             let res = await self.jeedom().callRpc({ method: method });
-            console.debug( '_fnRequest', res );
+            console.debug( 'InteractionRequester _fnRequest', res );
             // we do not have any interaction to test with
             /*
             if( res && res.result ){
