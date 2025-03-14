@@ -2,9 +2,9 @@
 
 ## ChangeLog
 
-### 1.1.1-rc.0
+### 1.2.0
 
-    Release date: 
+    Release date: 2025- 3-14
 
     - Fix jeeObject::all API call (todo #2)
     - Add a human name in events changes (todo #3)
@@ -27,4 +27,4 @@
 
 ---
 P. Wieser
-- Last updated on 2025, Jan. 30th
+- Last updated on 2025, March 14th
