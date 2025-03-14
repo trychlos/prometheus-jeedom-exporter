@@ -10,7 +10,6 @@
 
 |   Id | Date       | Description and comment(s) |
 | ---: | :---       | :---                       |
-|    5 | 2025- 3-14 | YAMLParseError: Tabs are not allowed as indentation |
 |    6 |  |  |
 
 ---
@@ -26,6 +25,8 @@
 |      | 2025- 3-14 | done (thanks to the in-memory inventory) |
 |    4 | 2025- 3-14 | log the first level of objects inventory |
 |      | 2025- 3-14 | done |
+|    5 | 2025- 3-14 | YAMLParseError: Tabs are not allowed as indentation |
+|      | 2025- 3-14 | https://stackoverflow.com/questions/19975954/a-yaml-file-cannot-contain-tabs-as-indentation - this is a YAML definition |
 
 ---
 P. Wieser
