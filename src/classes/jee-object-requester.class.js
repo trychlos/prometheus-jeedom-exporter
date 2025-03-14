@@ -104,7 +104,7 @@ export class JeeObjectRequester extends Requester {
         //  it is immediately called, without waiting for the next interval
         const _fnRequest = async function(){
             const method = 'jeeObject::all';
-            const res = self.jeedom().callRpc({ method: method });
+            const res = await self.jeedom().callRpc({ method: method });
             //console.debug( '_fnRequest', res );
             if( res && res.result && Array.isArray( res.result )){
                 let inventory = self.app().inventory();

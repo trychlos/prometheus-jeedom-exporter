@@ -10,7 +10,8 @@
 
 |   Id | Date       | Description and comment(s) |
 | ---: | :---       | :---                       |
-|    2 |  |  |
+|    3 | 2025- 3-14 | have a humanName in event changes |
+|    4 |  |  |
 
 ---
 ## Done
@@ -19,6 +20,8 @@
 | ---: | :---       | :---                       |
 |    1 | 2025- 1-29 | Have a greeting line on startup |
 |      | 2025- 1-30 | Done |
+|    2 | 2025- 3-14 | jeeObject::all doesn't provide any result |
+|      | 2025- 3-14 | fixed |
 
 ---
 P. Wieser
