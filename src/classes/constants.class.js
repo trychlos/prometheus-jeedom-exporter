@@ -79,7 +79,8 @@ export class Constants {
             jeeObject: {
                 // this rather targets the full in-memory inventory, is not published as metrics
                 inventory: {
-                    interval: 3600000           // 60*60*1000=1h en ms
+                    interval: 3600000,          // 60*60*1000=1h en ms
+                    log_1: false
                 },
                 // this instead is used for publish an inventory as metrics
                 refresh: {

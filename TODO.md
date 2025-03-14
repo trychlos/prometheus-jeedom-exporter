@@ -10,8 +10,8 @@
 
 |   Id | Date       | Description and comment(s) |
 | ---: | :---       | :---                       |
-|    4 | 2025- 3-14 | log the first level of objects inventory |
-|    5 |  |  |
+|    5 | 2025- 3-14 | YAMLParseError: Tabs are not allowed as indentation |
+|    6 |  |  |
 
 ---
 ## Done
@@ -24,6 +24,8 @@
 |      | 2025- 3-14 | fixed |
 |    3 | 2025- 3-14 | have a humanName in event changes |
 |      | 2025- 3-14 | done (thanks to the in-memory inventory) |
+|    4 | 2025- 3-14 | log the first level of objects inventory |
+|      | 2025- 3-14 | done |
 
 ---
 P. Wieser

@@ -72,6 +72,7 @@ The default configuration is:
         jeeObject:                                      # the jeeObject inventory
             inventory:                                  # this rather targets the full in-memory inventory, is not published as metrics
                 interval: 3600000
+                log_1: false                            # log the first found level
             refresh:                                    # this instead is used for publishing an inventory as metrics
                 enabled: false
                 interval: 3600000
