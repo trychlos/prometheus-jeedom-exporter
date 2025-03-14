@@ -2,9 +2,11 @@
 
 ## ChangeLog
 
-### 1.2.2-rc.0
+### 1.2.2
 
-    Release date: 
+    Release date: 2025- 3-14
+
+    - Fix package.json version number
 
 ### 1.2.1
 
