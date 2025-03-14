@@ -73,8 +73,9 @@ export class JeeObjectRequester extends Requester {
     // this requires to have a start datetime, and to keep the last datetime for next call
     // NB: this function returns the full hierarchy, though interesting, not usable for an exporter
     async _setupFullRequester(){
-        const config = this.app().config();
         const self = this;
+        const config = self.app().config();
+        let inventory = self.app().inventory();
         // a function to get the event since last changes
         //  it is immediately called, without waiting for the next interval
         const _fnRequest = async function(){
@@ -82,7 +83,6 @@ export class JeeObjectRequester extends Requester {
             const res = await self.jeedom().callRpc({ method: method });
             //console.debug( '_fnRequest', res );
             if( res && res.result && Array.isArray( res.result )){
-                let inventory = self.app().inventory();
                 inventory.jeeObject = inventory.jeeObject || {};
                 res.result.forEach(( it ) => {
                     inventory.jeeObject[it.id] = it;
@@ -90,6 +90,13 @@ export class JeeObjectRequester extends Requester {
             }
         };
         await _fnRequest();
+        // log the first level if asked for
+        //console.debug( 'config.requesters.jeeObject.inventory.log_1', config.requesters.jeeObject.inventory.log_1 );
+        if( config.requesters.jeeObject.inventory.log_1 ){
+            Object.keys( inventory.jeeObject ).forEach(( it ) => {
+                console.log( 'got jeeObject['+it+']:', inventory.jeeObject[it].name );
+            });
+        }
         // and last, setup the interval
         let run = this.app().runtime();
         run.requesters.jeeObject.inventory.handler = setInterval( _fnRequest, config.requesters.jeeObject.inventory.interval );
