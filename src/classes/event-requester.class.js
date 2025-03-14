@@ -162,10 +162,30 @@ export class EventRequester extends Requester {
                                 //  may happen that we receive an event for a non (or non yet) inventoried command
                                 let value = it.option.value;
                                 //console.debug( 'it', it, 'inventory', inventory.cmd[it.option.cmd_id] );
+                                let cmdName = '';
+                                let eqLogicId = -1;
+                                let eqLogicName = '';
+                                let objectId = -1;
+                                let objectName = '';
+                                let humanName = '';
                                 if( inventory.cmd[it.option.cmd_id] ){
                                     it.option.subType = inventory.cmd[it.option.cmd_id].subType;
+                                    cmdName = inventory.cmd[it.option.cmd_id].name;
+                                    eqLogicId = inventory.cmd[it.option.cmd_id].eqLogic_id;
                                 } else {
                                     console.log( '[NOTICE] command not found in the inventory', it.option.cmd_id );
+                                }
+                                // try to get a full human name
+                                if( inventory.eqLogic[eqLogicId] ){
+                                    eqLogicName = inventory.eqLogic[eqLogicId].name;
+                                    objectId = inventory.eqLogic[eqLogicId].object_id;
+                                }
+                                if( inventory.jeeObject[objectId] ){
+                                    objectName = inventory.jeeObject[objectId].name;
+                                }
+                                if( objectName && eqLogicName && cmdName ){
+                                    humanName = '['+objectName+']['+eqLogicName+']['+cmdName+']';
+                                    it.option.humanName = humanName;
                                 }
                                 if( it.option.subType === 'string' || isNaN( parseFloat( value ))){
                                     value = 1;
@@ -184,16 +204,6 @@ export class EventRequester extends Requester {
                                 //if( it.option.unit != it.option.raw_unit ){
                                 //    console.log( 'Not same unit', it );
                                 //}
-                                /*
-                                self._publishMetric( it, {
-                                    method: 'event::changes',
-                                    key: it.option.cmd_id,
-                                    excludes: [ 'value', 'display_value', 'valueDate', 'collectDate', 'datetime' ],
-                                    value: it.datetime,
-                                    sufix: '_last',
-                                    help: 'The last timestamp of the update of a command'
-                                });
-                                */
                                 break;
                             case 'eqLogic::update':
                                 it.name = 'eqLogic::update';
