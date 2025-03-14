@@ -6,7 +6,8 @@
 
     Release date: 
 
-    - Fix jeeObject::all API call
+    - Fix jeeObject::all API call (todo #2)
+    - Add a human name in events changes (todo #3)
 
 ### 1.1.0
 
