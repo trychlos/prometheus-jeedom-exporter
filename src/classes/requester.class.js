@@ -109,6 +109,7 @@ export class Requester extends AppBase {
      *  - value: the value of the metric, defaulting to 1
      *  - help: the help string, defaulting to none
      *  - type: the metric type, defaulting to 'gauge'
+     *  - dump: whether to dump the published metric, defaulting to false
      */
     publishMetric( source, opts={} ){
         let args = {};
@@ -128,7 +129,7 @@ export class Requester extends AppBase {
                 delete source[it];
             });
         }
-        // try to gather sub-objects
+        // try to gather remaining sub-objects
         source = this.gatherSubObjects( source );
         // build the metric args
         args = { ...args, ...{
@@ -142,6 +143,9 @@ export class Requester extends AppBase {
         }
         if( opts.keys ){
             args.keys = opts.keys;
+        }
+        if( opts.dump ){
+            console.debug( 'Requester::publishMetric()', args )
         }
         this.app().push( new Metric( args ));
     }

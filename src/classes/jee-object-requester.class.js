@@ -122,7 +122,7 @@ export class JeeObjectRequester extends Requester {
                         keys: [ 'id' ],
                         method: method,
                         name: 'jeeObject',
-                        excludes: [ 'configuration', 'display_icon', 'display_tagColor' ],
+                        excludes: [ 'configuration', 'display' ],
                         help: 'The JeeObject inventory'
                     });
                 });

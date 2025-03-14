@@ -6,7 +6,8 @@
 
     Release date: 
 
-    -
+    - Let the caller ask for metric dump
+    - Fix the jeeObjectRequester sub-objects exclusion
 
 ### 1.2.0
 
