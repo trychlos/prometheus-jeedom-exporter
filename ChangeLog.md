@@ -2,6 +2,12 @@
 
 ## ChangeLog
 
+### 1.2.4-rc.0
+
+    Release date: 
+
+    -
+
 ### 1.2.3
 
     Release date: 2025- 3-15
