@@ -2,11 +2,11 @@
 
 ## ChangeLog
 
-### 1.2.3-rc.0
+### 1.2.3
 
-    Release date: 
+    Release date: 2025- 3-15
 
-    -
+    - Update package.json, npm-publish.yml to publish to NPMJS
 
 ### 1.2.2
 
@@ -46,4 +46,4 @@
 
 ---
 P. Wieser
-- Last updated on 2025, March 14th
+- Last updated on 2025, March 15th
