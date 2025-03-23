@@ -117,7 +117,7 @@ export class Jeedom extends AppBase {
     /**
      * @summary Execute a JSON RPC call to the Jeedom API
      * @param {Object} parms
-     * @returns {Object} the JSON resultn, or null if an error has occured
+     * @returns {Object} the JSON result, or null if an error has occured
      */
     async callRpc( parms ){
         let json = null;

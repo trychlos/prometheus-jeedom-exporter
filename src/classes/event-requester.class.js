@@ -95,6 +95,8 @@
     }
  */
 
+import promClient from 'prom-client';
+
 import { Requester } from './requester.class.js';
 
 export class EventRequester extends Requester {
@@ -116,7 +118,7 @@ export class EventRequester extends Requester {
             run.requesters.event = run.requesters.event || {};
             run.requesters.event.changes = run.requesters.event.changes || {};
             run.requesters.event.changes.requester = o;
-            o._setupRequester();
+            o._setupPromClientRequester();
         } else if( app.verbose()){
             console.log( '[VERBOSE] doesn\'t instanciate EventRequester as it is disabled' );
         }
@@ -128,7 +130,9 @@ export class EventRequester extends Requester {
 
     // install a timer which will gather event changes every interval
     // this requires to have a start datetime, and to keep the last datetime for next call
-    async _setupRequester(){
+    // NB: This is a requester based on periodic requests of Jeedom.
+    //  Starting with v2, this requester is obsoleted, and replaced with a prom-client-based collect one.
+    async _setupRequesterByInterval(){
         const config = this.app().config();
         let run = this.app().runtime();
         const self = this;
@@ -143,12 +147,13 @@ export class EventRequester extends Requester {
             }
         };
         await _fnInitLast();
-        // a function to get the event since last changes
-        //  it is immediately called, without waiting for the next interval
+        // a function to get the event changes since last request
         const method = 'event::changes';
         const _fnRequest = async function(){
             const res = await self.jeedom().callRpc({ method: method, params: { datetime: run.requesters.event.changes.last }});
-            //console.debug( 'EventRequester _fnRequest', res );
+            if( config.requesters.event.changes.traces.rpc ){
+                console.debug( 'EventRequester _fnRequest', res );
+            }
             if( res && res.result ){
                 run.requesters.event.changes.last = res.result.datetime;
                 if( res.result.result && Array.isArray( res.result.result )){
@@ -197,7 +202,8 @@ export class EventRequester extends Requester {
                                     excludes: [ 'display_value', 'valueDate', 'collectDate' ],
                                     keys: [ 'cmd_id' ],
                                     value: value,
-                                    help: 'The last value of the update of a command'
+                                    help: 'The last value of the update of a command',
+                                    dump: config.requesters.event.changes.traces.metrics
                                 });
                                 // log when unit is not the same than raw_unit
                                 // -> often enough
@@ -261,6 +267,112 @@ export class EventRequester extends Requester {
         }
         // and last, setup the interval
         run.requesters.event.changes.handler = setInterval( _fnRequest, config.requesters.event.changes.interval );
+    }
+
+    // prom-client-based requester
+    // prom-client can only collect metrics for predefined objects, so cannot dynamically discover the metrics to be published
+    // unless we drastically reduce the published labels
+    async _setupPromClientRequester(){
+        const config = this.app().config();
+        let run = this.app().runtime();
+        const self = this;
+        // a function to get an initial date and time
+        const _fnInitLast = async function(){
+            const res = await self.jeedom().callRpc({ method: 'datetime' });
+            if( res && res.result ){
+                run.requesters.event.changes.last = res.result - config.requesters.event.changes.since;
+                if( self.app().verbose()){
+                    console.log( '[VERBOSE] EventRequester starts from', run.requesters.event.changes.last );
+                }
+            }
+        };
+        await _fnInitLast();
+        // a function to get the event since last request
+        // it is called each time Prometheus scrapes its metrics
+        // returns an array of metrics to be published
+        const method = 'event::changes';
+        const _fnRequest = async function(){
+            let metrics = [];
+            const res = await self.jeedom().callRpc({ method: method, params: { datetime: run.requesters.event.changes.last }});
+            if( config.requesters.event.changes.traces.rpc ){
+                console.debug( 'EventRequester _fnRequest res', res );
+                console.debug( 'EventRequester _fnRequest result length is', res.result.length );
+            }
+            if( res && res.result ){
+                run.requesters.event.changes.last = res.result.datetime;
+                if( res.result.result && Array.isArray( res.result.result )){
+                    const inventory = self.app().inventory();
+                    res.result.result.forEach(( it ) => {
+                        if( config.requesters.event.changes.traces.rpc ){
+                            console.debug( 'EventRequester _fnRequest it', it );
+                        }
+                        switch( it.name ){
+                            case 'cmd::update':
+                                // if the commands inventory has not run yet, just ignore the events
+                                //  may happen that we receive an event for a non (or non yet) inventoried command
+                                //console.debug( 'it', it, 'inventory', inventory.cmd[it.option.cmd_id] );
+                                let cmdName = '';
+                                let eqLogicId = -1;
+                                let eqLogicName = '';
+                                let objectId = -1;
+                                let objectName = '';
+                                let humanName = '';
+                                if( inventory.cmd[it.option.cmd_id] ){
+                                    it.option.subType = inventory.cmd[it.option.cmd_id].subType;
+                                    cmdName = inventory.cmd[it.option.cmd_id].name;
+                                    eqLogicId = inventory.cmd[it.option.cmd_id].eqLogic_id;
+                                } else {
+                                    console.log( '[NOTICE] command not found in the inventory', it.option.cmd_id );
+                                }
+                                // try to get a full human name
+                                if( inventory.eqLogic[eqLogicId] ){
+                                    eqLogicName = inventory.eqLogic[eqLogicId].name;
+                                    objectId = inventory.eqLogic[eqLogicId].object_id;
+                                }
+                                if( inventory.jeeObject[objectId] ){
+                                    objectName = inventory.jeeObject[objectId].name;
+                                }
+                                if( objectName && eqLogicName && cmdName ){
+                                    humanName = '['+objectName+']['+eqLogicName+']['+cmdName+']';
+                                }
+                                // have a suitable value
+                                let value = it.option.value;
+                                if( it.option.subType === 'string' || isNaN( parseFloat( value ))){
+                                    value = 1;
+                                }
+                                metrics.push({
+                                    labels: {
+                                        name: it.name,
+                                        humanName: humanName,
+                                        method: method,
+                                        cmd_id: it.option.cmd_id
+                                    },
+                                    value: value
+                                });
+                                break;
+                            default:
+                                console.log( 'unhandled event', it.name );
+                        }
+                    });
+                }
+            }
+            return metrics;
+        };
+        // define the metrics to be published and their collector functions
+        run.requesters.event.changes.gauges = [];
+        //console.log( 'promClient', promClient );
+        run.requesters.event.changes.gauges.push( new promClient.Gauge({
+            name: 'jeedom_event_changes',
+            help: 'Some change somewhere in Jeedom',
+            async collect(){
+                const metrics = await _fnRequest();
+                metrics.forEach(( it ) => {
+                    console.debug( 'collect() publishes', it );
+                    this.set( it.labels, it.value );
+                });
+            },
+            labelNames: [ 'cmd_id', 'method', 'name', 'humanName' ]
+        }));
     }
 
     /**

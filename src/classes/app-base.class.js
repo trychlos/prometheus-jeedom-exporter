@@ -17,7 +17,7 @@
  * 
  * /src/classes/app-base.class.js
  *
- * A common base class to handle the 'app' link
+ * A common base class to handle an 'app' (Application) reference
  */
 
 export class AppBase {
@@ -33,7 +33,6 @@ export class AppBase {
 
     /**
      * Constructor
-     * We set up here several timers to fetch metrics from Jeedom
      * @param {Application} app the application
      * @returns {AppBase} instance
      */

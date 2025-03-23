@@ -2,11 +2,12 @@
 
 ## ChangeLog
 
-### 1.2.4-rc.0
+### 2.0.0-rc.0
 
     Release date: 
 
-    -
+    - Introduce traces flags on event
+    - Use prom-client standard package to publish Prometheus metrics from JS
 
 ### 1.2.3
 

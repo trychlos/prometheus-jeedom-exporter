@@ -36,7 +36,6 @@ export class Requester extends AppBase {
 
     /**
      * Constructor
-     * We set up here several timers to fetch metrics from Jeedom
      * @param {Jeedom} jeedom
      * @returns {Requester} instance
      */

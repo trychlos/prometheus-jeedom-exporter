@@ -23,6 +23,7 @@
 import { Command, Option } from 'commander';
 import express from 'express';
 import fs from 'fs';
+import promClient from 'prom-client';
 import YAML from 'yaml';
 
 import { Constants } from './constants.class.js';
@@ -105,6 +106,8 @@ export class Application {
             .parse( process.argv );
         const opts = this._command.opts();
         this._config = { ...Constants.configDefaults };
+        //console.debug( 'this._config', this._config );
+        console.debug( 'this._config.requesters.event.changes', this._config.requesters.event.changes );
         //console.debug( 'options', opts );
         // check for the configuration, which will acts as a default before parsing command-line
         if( opts.config ){
@@ -298,7 +301,8 @@ export class Application {
     }
 
     // the metrics page
-    _pageMetrics( req, res, next ){
+    // merge interval-based (v1.x) metrics with those provided by prom-client (v2.x)
+    async _pageMetrics( req, res, next ){
         let str = '';
         // send requests metrics
         this.jeedom().requestsMetrics().forEach(( it ) => {
@@ -329,6 +333,8 @@ export class Application {
                 });
             });
         }
+        // get prom-client metrics
+        str += await promClient.register.metrics();
         res.set( 'Content-Type', 'text/plain' );
         res.send( str );
     }
@@ -341,8 +347,10 @@ export class Application {
             const file = fs.readFileSync( filename, 'utf8' );
             if( file ){
                 this._yaml = YAML.parse( file );
-                //console.debug( 'yaml', this._yaml );
+                console.debug( 'yaml', this._yaml );
                 this._config = Utils.mergeDeep( this._config, this._yaml );
+                console.debug( 'after merge this._config', this._config );
+                console.debug( 'after merge this._config.requesters.event.changes', this._config.requesters.event.changes );
             }
         } catch( e ){
             // if we do not have specify a configuration file, then ignore if the default doesn't exist
