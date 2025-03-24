@@ -107,7 +107,7 @@ export class Application {
         const opts = this._command.opts();
         this._config = { ...Constants.configDefaults };
         //console.debug( 'this._config', this._config );
-        console.debug( 'this._config.requesters.event.changes', this._config.requesters.event.changes );
+        //console.debug( 'this._config.requesters.event.changes', this._config.requesters.event.changes );
         //console.debug( 'options', opts );
         // check for the configuration, which will acts as a default before parsing command-line
         if( opts.config ){
@@ -347,10 +347,10 @@ export class Application {
             const file = fs.readFileSync( filename, 'utf8' );
             if( file ){
                 this._yaml = YAML.parse( file );
-                console.debug( 'yaml', this._yaml );
+                //console.debug( 'yaml', this._yaml );
                 this._config = Utils.mergeDeep( this._config, this._yaml );
-                console.debug( 'after merge this._config', this._config );
-                console.debug( 'after merge this._config.requesters.event.changes', this._config.requesters.event.changes );
+                //console.debug( 'after merge this._config', this._config );
+                //console.debug( 'after merge this._config.requesters.event.changes', this._config.requesters.event.changes );
             }
         } catch( e ){
             // if we do not have specify a configuration file, then ignore if the default doesn't exist

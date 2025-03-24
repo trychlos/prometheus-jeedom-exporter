@@ -151,7 +151,7 @@ export class EventRequester extends Requester {
         const method = 'event::changes';
         const _fnRequest = async function(){
             const res = await self.jeedom().callRpc({ method: method, params: { datetime: run.requesters.event.changes.last }});
-            if( config.requesters.event.changes.traces.rpc ){
+            if( config.requesters.event.changes.traces && config.requesters.event.changes.traces.rpc ){
                 console.debug( 'EventRequester _fnRequest', res );
             }
             if( res && res.result ){
@@ -203,7 +203,7 @@ export class EventRequester extends Requester {
                                     keys: [ 'cmd_id' ],
                                     value: value,
                                     help: 'The last value of the update of a command',
-                                    dump: config.requesters.event.changes.traces.metrics
+                                    dump: config.requesters.event.changes.traces && config.requesters.event.changes.traces.metrics
                                 });
                                 // log when unit is not the same than raw_unit
                                 // -> often enough
@@ -294,7 +294,7 @@ export class EventRequester extends Requester {
         const _fnRequest = async function(){
             let metrics = [];
             const res = await self.jeedom().callRpc({ method: method, params: { datetime: run.requesters.event.changes.last }});
-            if( config.requesters.event.changes.traces.rpc ){
+            if( config.requesters.event.changes.traces && config.requesters.event.changes.traces.rpc ){
                 console.debug( 'EventRequester _fnRequest res', res );
                 console.debug( 'EventRequester _fnRequest result length is', res.result.length );
             }
@@ -306,6 +306,9 @@ export class EventRequester extends Requester {
                         if( config.requesters.event.changes.traces.rpc ){
                             console.debug( 'EventRequester _fnRequest it', it );
                         }
+                        let eqLogicName = '';
+                        let humanName = '';
+                        let metric;
                         switch( it.name ){
                             case 'cmd::update':
                                 // if the commands inventory has not run yet, just ignore the events
@@ -313,10 +316,8 @@ export class EventRequester extends Requester {
                                 //console.debug( 'it', it, 'inventory', inventory.cmd[it.option.cmd_id] );
                                 let cmdName = '';
                                 let eqLogicId = -1;
-                                let eqLogicName = '';
                                 let objectId = -1;
                                 let objectName = '';
-                                let humanName = '';
                                 if( inventory.cmd[it.option.cmd_id] ){
                                     it.option.subType = inventory.cmd[it.option.cmd_id].subType;
                                     cmdName = inventory.cmd[it.option.cmd_id].name;
@@ -340,15 +341,47 @@ export class EventRequester extends Requester {
                                 if( it.option.subType === 'string' || isNaN( parseFloat( value ))){
                                     value = 1;
                                 }
-                                metrics.push({
+                                metric = {
                                     labels: {
                                         name: it.name,
-                                        humanName: humanName,
                                         method: method,
                                         cmd_id: it.option.cmd_id
                                     },
-                                    value: value
-                                });
+                                    value: Number( value )
+                                };
+                                if( humanName ){
+                                    metric.labels.humanName = humanName;
+                                }
+                                if( it.option.raw_unit ){
+                                    metric.labels.raw_unit = it.option.raw_unit;
+                                }
+                                if( config.requesters.event.changes.traces && config.requesters.event.changes.traces.metrics ){
+                                    console.debug( 'EventRequester metric', metric );
+                                }
+                                metrics.push( metric );
+                                break;
+                            case 'eqLogic::update':
+                                if( inventory.eqLogic[it.option.eqLogic_id] ){
+                                    eqLogicName = inventory.eqLogic[it.option.eqLogic_id].name;
+                                }
+                                if( eqLogicName ){
+                                    humanName = '['+eqLogicName+']';
+                                }
+                                metric = {
+                                    labels: {
+                                        name: it.name,
+                                        method: method,
+                                        eqLogic_id: it.option.eqLogic_id
+                                    },
+                                    value: Number( it.datetime )
+                                };
+                                if( humanName ){
+                                    metric.labels.humanName = humanName;
+                                }
+                                if( config.requesters.event.changes.traces && config.requesters.event.changes.traces.metrics ){
+                                    console.debug( 'EventRequester metric', metric );
+                                }
+                                metrics.push( metric );
                                 break;
                             default:
                                 console.log( 'unhandled event', it.name );
@@ -367,11 +400,10 @@ export class EventRequester extends Requester {
             async collect(){
                 const metrics = await _fnRequest();
                 metrics.forEach(( it ) => {
-                    console.debug( 'collect() publishes', it );
                     this.set( it.labels, it.value );
                 });
             },
-            labelNames: [ 'cmd_id', 'method', 'name', 'humanName' ]
+            labelNames: [ 'cmd_id', 'eqLogic_id', 'method', 'name', 'humanName', 'raw_unit' ]
         }));
     }
 
