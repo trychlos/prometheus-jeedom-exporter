@@ -66,7 +66,7 @@ export class Constants {
             event: {
                 changes: {
                     enabled: true,
-                    interval: 60000,            // 60*1000=1mn en ms
+                    interval: 60000,            // 60*1000=1mn en ms - no more used starting with v2.x
                     since: 600000,              // 10*60*1000=10mn en ms: when starting, rewind 10mn to init the metrics
                     traces: {
                         rpc: false,

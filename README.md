@@ -63,7 +63,6 @@ The default configuration is:
         event:                                          # the events changes
             changes:
                 enabled: true
-                interval: 60000                         # 1mn = 60 x 1000 ms
                 since: 600000                           # when starting, rewind 10mn to init the metrics
                 traces:
                     rpc: false
@@ -103,7 +102,7 @@ The default configuration is:
                 interval: 3600000
 ```
 
-Please note that, due to the way Prometheus works, you may have to decrease the event interval to something which let you scrape all your measures, for example something like 5000ms.
+Starting with v2.0, this package uses `prom-client`, an official Prometheus library to publish metrics from Javascript. The scrape frequency is then managed by Prometheus itself.
 
 ## systemd example
 
@@ -126,4 +125,4 @@ WantedBy=multi-user.target
 
 ---
 P. Wieser
-- Last updated on 2025, March 15th
+- Last updated on 2025, March 25th
