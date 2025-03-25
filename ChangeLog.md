@@ -2,6 +2,12 @@
 
 ## ChangeLog
 
+### 2.0.1
+
+    Release date: 2025- 3-25
+
+    - Update package-lock.json
+
 ### 2.0.0
 
     Release date: 2025- 3-25
